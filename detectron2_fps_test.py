@@ -1,29 +1,20 @@
-from argparse import ArgumentParser
 import time
-
-import torch
-from detectron2 import model_zoo
-from detectron2.config import get_cfg
-from detectron2.engine import DefaultPredictor
-
-assert torch.__version__.startswith("1.10") and torch.cuda.is_available()
+import warnings
 
 import providentia_camera_dataset as pcd
+from detectron2_utils import load_default_predictor
 
 
-def test_fps(device: str):
-    torch.cuda.set_device(device)
+# Ignore Detectron2 warning.
+warnings.simplefilter('ignore', UserWarning)
 
+
+def test_fps():
     print('Loading images...')
     images = list(pcd.load_images())
 
     print('Loading model...')
-    model_name = 'COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml'
-    cfg = get_cfg()
-    cfg.INPUT.FORMAT = 'RGB'
-    cfg.merge_from_file(model_zoo.get_config_file(model_name))
-    cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(model_name)
-    predictor = DefaultPredictor(cfg)
+    predictor = load_default_predictor()
 
     print('Runnning inference...')
     start_time = time.perf_counter()
@@ -40,8 +31,4 @@ def test_fps(device: str):
 
 
 if __name__ == '__main__':
-    parser = ArgumentParser()
-    parser.add_argument('cuda_device', type=int)
-    args = parser.parse_args()
-
-    test_fps(device=f'cuda:{args.cuda_device}')
+    test_fps()

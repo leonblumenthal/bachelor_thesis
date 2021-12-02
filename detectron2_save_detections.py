@@ -12,7 +12,7 @@ from detectron2_utils import create_detections, load_default_predictor
 
 
 # Ignore Detectron2 warning.
-warnings.simplefilter("ignore", UserWarning)
+warnings.simplefilter('ignore', UserWarning)
 
 
 def save_detections(dst_dir: str):
