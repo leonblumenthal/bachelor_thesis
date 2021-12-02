@@ -1,3 +1,11 @@
+### Custom
+# Default data directory
+data
+
+# Mac specific
+.DS_Store
+
+### Default GitHub Python .gitignore
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
