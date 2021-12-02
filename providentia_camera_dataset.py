@@ -1,5 +1,5 @@
 import os
-from typing import Iterator
+from typing import Iterator, List
 
 import cv2
 import numpy as np
@@ -37,7 +37,7 @@ def load_image(index: int, rgb: bool = True) -> np.ndarray:
     return image
 
 
-def load_images(indices: list[int] = None, rgb: bool = True) -> Iterator[np.ndarray]:
+def load_images(indices: List[int] = None, rgb: bool = True) -> Iterator[np.ndarray]:
     """Lazily load all images and convert them to RGB if necessary."""
 
     if indices is None:
