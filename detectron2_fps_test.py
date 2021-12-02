@@ -20,6 +20,7 @@ def test_fps(device: str):
     print('Loading model...')
     model_name = 'COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml'
     cfg = get_cfg()
+    cfg.INPUT.FORMAT = 'RGB'
     cfg.merge_from_file(model_zoo.get_config_file(model_name))
     cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(model_name)
     predictor = DefaultPredictor(cfg)
