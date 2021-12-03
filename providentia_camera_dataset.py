@@ -1,5 +1,6 @@
+import json
 import os
-from typing import Iterator, List
+from typing import Dict, Iterator, List
 
 import cv2
 import numpy as np
@@ -24,6 +25,13 @@ image_paths = [
     if name.endswith('.jpg')
 ]
 
+_labels_dir = os.path.join(dataset_path, 'labels')
+label_paths = [
+    os.path.join(_labels_dir, name)
+    for name in sorted(os.listdir(_labels_dir))
+    if name.endswith('.json')
+]
+
 
 def load_image(index: int, rgb: bool = True) -> np.ndarray:
     """Load single image by index and convert to RGB if necessary."""
@@ -45,3 +53,22 @@ def load_images(indices: List[int] = None, rgb: bool = True) -> Iterator[np.ndar
 
     for i in indices:
         yield load_image(i, rgb)
+
+
+def load_label(index: int) -> Dict:
+    """Load single label json."""
+
+    with open(label_paths[index]) as f:
+        label = json.load(f)
+
+    return label
+
+
+def load_labels(indices: List[int] = None) -> Iterator[Dict]:
+    """Lazily load all labels."""
+
+    if indices is None:
+        indices = range(len(label_paths))
+
+    for i in indices:
+        yield load_label(i)
