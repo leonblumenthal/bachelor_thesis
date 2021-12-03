@@ -2,6 +2,9 @@
 # Default data directory
 data
 
+# VS Code
+.vscode
+
 # Mac specific
 .DS_Store
 
