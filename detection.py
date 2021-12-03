@@ -52,3 +52,17 @@ def load_detection_lists(indices: List[int] = None) -> Iterator[List[Detection]]
 
     for i in indices:
         yield load_detection_list(i)
+
+
+def merge_masks(detections: List[Detection], dimensions: Tuple[int, int]) -> np.ndarray:
+    """Merge bool masks of all detections into a single mask with specified dimensions."""
+
+    mask = np.zeros(dimensions, dtype=bool)
+
+    for detection in detections:
+        h, w = detection.mask.shape
+        x, y = detection.anchor
+
+        mask[y : y + h, x : x + w] |= detection.mask
+
+    return mask
