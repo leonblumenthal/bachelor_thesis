@@ -26,7 +26,7 @@ def save_detections(dst_dir: str):
 
         detections = create_detections(instances)
 
-        path = os.path.join(dst_dir, f'{i}.detection')
+        path = os.path.join(dst_dir, f'{i:06}.detection')
 
         # TODO: Save without torch.
         torch.save(detections, path)
