@@ -7,7 +7,7 @@ from argparse import ArgumentParser
 import torch
 from tqdm import tqdm
 
-import providentia_camera_dataset as pcd
+import pcd_loader as pcd
 from detectron2_utils import create_detections, load_default_predictor
 
 

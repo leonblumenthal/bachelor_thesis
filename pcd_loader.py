@@ -1,10 +1,12 @@
 import json
 import os
-from typing import Dict, Iterator, List
+from typing import Dict, Iterator, List, Tuple
 
 import cv2
 import numpy as np
 from dotenv import load_dotenv
+
+from data_models import Box3D, Dimension, Label, Location, ProjectedBox
 
 
 load_dotenv()
@@ -55,20 +57,43 @@ def load_images(indices: List[int] = None, rgb: bool = True) -> Iterator[np.ndar
         yield load_image(i, rgb)
 
 
-def load_label(index: int) -> Dict:
-    """Load single label json."""
+def _create_label(
+    label_data: Dict, projected_scale: Tuple[float, float] = (2 * 1920, 2 * 1200)
+) -> Label:
+    """Create label from single label data."""
+    px, py = projected_scale
+    projected_box = ProjectedBox(
+        **{k: (x * px, y * py) for k, (x, y) in label_data['box3d_projected'].items()}
+    )
 
-    with open(label_paths[index]) as f:
-        label = json.load(f)
+    location = Location(**label_data['box3d']['location'])
+    dimension = Dimension(**label_data['box3d']['dimension'])
+    box3d = Box3D(
+        dimension, location, yaw=label_data['box3d']['orientation']['rotationYaw']
+    )
+
+    label = Label(label_data['id'], label_data['category'], box3d, projected_box)
 
     return label
 
 
-def load_labels(indices: List[int] = None) -> Iterator[Dict]:
+def load_label_list(index: int) -> Tuple[List[Label], Dict]:
+    """Load labels list and info data."""
+
+    with open(label_paths[index]) as f:
+        data = json.load(f)
+
+    labels_data = data.pop('labels')
+    labels = [_create_label(label_data) for label_data in labels_data]
+
+    return labels, data
+
+
+def load_label_lists(indices: List[int] = None) -> Iterator[Tuple[List[Label], Dict]]:
     """Lazily load all labels."""
 
     if indices is None:
         indices = range(len(label_paths))
 
     for i in indices:
-        yield load_label(i)
+        yield load_label_list(i)

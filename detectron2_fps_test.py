@@ -1,7 +1,7 @@
 import time
 import warnings
 
-import providentia_camera_dataset as pcd
+import pcd_loader as pcd
 from detectron2_utils import load_default_predictor
 
 
