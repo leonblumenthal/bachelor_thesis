@@ -4,7 +4,7 @@ from typing import Iterator, List
 import torch
 from dotenv import load_dotenv
 
-from detection import Detection
+from data_models import Detection
 
 
 load_dotenv()
