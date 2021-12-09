@@ -7,7 +7,7 @@ from detectron2 import model_zoo
 from detectron2.config import get_cfg
 from detectron2.engine import DefaultPredictor
 
-from detection import Detection
+from data_models import Detection
 
 
 def _get_mask_box(mask: torch.Tensor) -> Tuple[int, int, int, int]:
