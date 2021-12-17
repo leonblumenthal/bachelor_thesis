@@ -7,21 +7,23 @@ from argparse import ArgumentParser
 import torch
 from tqdm import tqdm
 
-import pcd_loader as pcd
 from detectron2_utils import create_detections, load_default_predictor
-
+from frame_loader import FrameLoader
 
 # Ignore Detectron2 warning.
 warnings.simplefilter('ignore', UserWarning)
 
 
-def save_detections(dst_dir: str):
+def save_detections(src_dir: str, dst_dir: str):
+    loader = FrameLoader(src_dir)
+    print(f'Found {len(loader.paths)} frames')
+
     os.makedirs(dst_dir, exist_ok=True)
 
     predictor = load_default_predictor()
 
-    for i, image in tqdm(enumerate(pcd.load_images()), total=len(pcd.image_paths)):
-        out = predictor(image)
+    for i, frame in tqdm(enumerate(loader.load_frames()), total=len(loader.paths)):
+        out = predictor(frame)
         instances = out['instances'].to('cpu')
 
         detections = create_detections(instances)
@@ -34,7 +36,8 @@ def save_detections(dst_dir: str):
 
 if __name__ == '__main__':
     parser = ArgumentParser()
+    parser.add_argument('src_dir', type=str)
     parser.add_argument('dst_dir', type=str)
     args = parser.parse_args()
 
-    save_detections(args.dst_dir)
+    save_detections(args.src_dir, args.dst_dir)
