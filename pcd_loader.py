@@ -2,11 +2,10 @@ import json
 import os
 from typing import Dict, Iterator, List, Tuple
 
-import cv2
-import numpy as np
 from dotenv import load_dotenv
 
 from data_models import Box3D, Dimension, Label, Location, ProjectedBox
+from frame_loader import FrameLoader
 
 
 load_dotenv()
@@ -20,12 +19,10 @@ if not os.path.exists(dataset_path):
     raise Exception('Providentia camera dataset path is invalid')
 
 
-_images_dir = os.path.join(dataset_path, 'images')
-image_paths = [
-    os.path.join(_images_dir, name)
-    for name in sorted(os.listdir(_images_dir))
-    if name.endswith('.jpg')
-]
+_image_loader = FrameLoader(os.path.join(dataset_path, 'images'))
+load_image = _image_loader.load_frame
+load_images = _image_loader.load_frames
+
 
 _labels_dir = os.path.join(dataset_path, 'labels')
 label_paths = [
@@ -33,28 +30,6 @@ label_paths = [
     for name in sorted(os.listdir(_labels_dir))
     if name.endswith('.json')
 ]
-
-
-def load_image(index: int, rgb: bool = True) -> np.ndarray:
-    """Load single image by index and convert to RGB if necessary."""
-
-    image = cv2.imread(image_paths[index])
-
-    # Convert from BGR to RGB.
-    if rgb:
-        image = image[:, :, ::-1]
-
-    return image
-
-
-def load_images(indices: List[int] = None, rgb: bool = True) -> Iterator[np.ndarray]:
-    """Lazily load all images and convert them to RGB if necessary."""
-
-    if indices is None:
-        indices = range(len(image_paths))
-
-    for i in indices:
-        yield load_image(i, rgb)
 
 
 def _create_label(
