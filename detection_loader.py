@@ -2,42 +2,34 @@ import os
 from typing import Iterator, List
 
 import torch
-from dotenv import load_dotenv
 
 from data_models import Detection
 
 
-load_dotenv()
+class DetectionLoader:
+    """Helper class to load detection lists from a directory by index."""
 
+    def __init__(self, dir_path: str) -> None:
+        self.paths = [
+            os.path.join(dir_path, name)
+            for name in sorted(os.listdir(dir_path))
+            if name.endswith('.detection')
+        ]
 
-_detections_path = os.getenv(
-    'DETECTIONS_PATH',
-    './data/detections',
-)
-if not os.path.exists(_detections_path):
-    raise Exception('Detections path is invalid')
+    def load_detection_list(self, index: int) -> List[Detection]:
+        """Load single detection list."""
 
+        detections = torch.load(self.paths[index])
 
-detection_list_paths = [
-    os.path.join(_detections_path, name)
-    for name in sorted(os.listdir(_detections_path))
-    if name.endswith('.detection')
-]
+        return detections
 
+    def load_detection_lists(
+        self, indices: List[int] = None
+    ) -> Iterator[List[Detection]]:
+        """Lazily load all detection lists."""
 
-def load_detection_list(index: int) -> List[Detection]:
-    """Load single detection list."""
+        if indices is None:
+            indices = range(len(self.paths))
 
-    detections = torch.load(detection_list_paths[index])
-
-    return detections
-
-
-def load_detection_lists(indices: List[int] = None) -> Iterator[List[Detection]]:
-    """Lazily load all detection lists."""
-
-    if indices is None:
-        indices = range(len(detection_list_paths))
-
-    for i in indices:
-        yield load_detection_list(i)
+        for i in indices:
+            yield self.load_detection_list(i)
