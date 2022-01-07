@@ -21,7 +21,9 @@ def merge_masks(detections: List[Detection], dimensions: Tuple[int, int]) -> np.
     return mask
 
 
-def calculate_mask_centers(detections: List[Detection]) -> np.ndarray:
+def calculate_mask_centers(
+    detections: List[Detection], anchored: bool = False
+) -> np.ndarray:
     """Calculate global mask centers for every detection (like center of mass)."""
 
     centers = []
@@ -30,8 +32,12 @@ def calculate_mask_centers(detections: List[Detection]) -> np.ndarray:
         mask = det.mask.astype(float)
         mask /= mask.sum()
         h, w = mask.shape
-        x = (mask.sum(0) * np.arange(w)).sum() + det.anchor[0]
-        y = (mask.sum(1) * np.arange(h)).sum() + det.anchor[1]
+        x = (mask.sum(0) * np.arange(w)).sum()
+        y = (mask.sum(1) * np.arange(h)).sum()
+
+        if not anchored:
+            x += det.anchor[0]
+            y += det.anchor[1]
 
         centers.append([x, y])
 
@@ -41,7 +47,7 @@ def calculate_mask_centers(detections: List[Detection]) -> np.ndarray:
 def match_detections_and_labels(
     detections: List[Detection],
     labels: List[Label],
-    min_span: float = 100,
+    min_span: float = 0,
     bounds: Tuple[int, int] = None,
 ) -> List[Tuple[Detection, Label]]:
     """
