@@ -2,6 +2,7 @@ from dataclasses import astuple
 from typing import List, Tuple
 
 import numpy as np
+from scipy import interpolate
 
 from data_models import Detection, Label
 
@@ -92,3 +93,28 @@ def match_detections_and_labels(
     ]
 
     return pairs
+
+
+def calculate_bottom_contour(detection: Detection, anchored: bool = True) -> np.ndarray:
+    """Calculate (anchored) bottom contour (2 x w) for detection mask (h x w)."""
+
+    mask = detection.mask
+    x = np.arange(mask.shape[1])
+    y = mask.shape[0] - mask[::-1].argmax(0)
+
+    contour = np.array([x, y])
+
+    if not anchored:
+        contour += np.array([detection.anchor]).T
+
+    return contour
+
+
+def interpolate_path(points: np.ndarray, n: int, smoothing: int = 0) -> np.ndarray:
+    """Interpolate path of points (2 x m) with n points using splines."""
+
+    tck, _ = interpolate.splprep(points, s=smoothing)
+    unew = np.linspace(0, 1, n)
+    interpolated_points = np.array(interpolate.splev(unew, tck))
+
+    return interpolated_points
