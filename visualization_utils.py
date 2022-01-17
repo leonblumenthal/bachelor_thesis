@@ -109,3 +109,22 @@ def create_detections_figure(
         )
 
     return fig
+
+
+def draw_path(
+    fig: go.Figure,
+    points: np.ndarray,
+    color: Any = (0, 0, 0),
+    thickness: float = 2,
+    closed: bool = True,
+):
+    """Draw (closed) path on figure with points (2xn)."""
+
+    color = px.colors.validate_colors(color, 'rgb')[0]
+
+    pairs = [f'{x},{y}' for x, y in points.T]
+    path = 'M ' + ' L '.join(pairs)
+    if closed:
+        path += ' Z'
+
+    fig.add_shape(type='path', path=path, line_color=color, line_width=thickness)
