@@ -1,4 +1,4 @@
-"""Save detections for every image of the providentia camera dataset."""
+"""Save detections for every image in a specified directory."""
 
 import os
 import warnings
@@ -22,13 +22,15 @@ def save_detections(src_dir: str, dst_dir: str):
 
     predictor = load_default_predictor()
 
-    for i, frame in tqdm(enumerate(loader.load_frames()), total=len(loader.paths)):
-        out = predictor(frame)
+    # loader.load_frames() is better if paths are not needed.
+    for i, frame_path in tqdm(enumerate(loader.paths)):
+        out = predictor(loader.load_frame(i))
         instances = out['instances'].to('cpu')
 
         detections = create_detections(instances)
 
-        path = os.path.join(dst_dir, f'{i:06}.detection')
+        name = os.path.basename(frame_path).split('.')[0]
+        path = os.path.join(dst_dir, f'{name}.detection')
 
         # TODO: Save without torch.
         torch.save(detections, path)
