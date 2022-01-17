@@ -23,7 +23,7 @@ def save_detections(src_dir: str, dst_dir: str):
     predictor = load_default_predictor()
 
     # loader.load_frames() is better if paths are not needed.
-    for i, frame_path in tqdm(enumerate(loader.paths)):
+    for i, frame_path in enumerate(tqdm(loader.paths)):
         out = predictor(loader.load_frame(i))
         instances = out['instances'].to('cpu')
 
