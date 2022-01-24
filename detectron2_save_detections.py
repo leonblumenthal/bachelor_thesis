@@ -8,7 +8,7 @@ import torch
 from tqdm import tqdm
 
 from detectron2_utils import create_detections, load_default_predictor
-from frame_loader import FrameLoader
+from loaders import FrameLoader
 
 # Ignore Detectron2 warning.
 warnings.simplefilter('ignore', UserWarning)
@@ -24,7 +24,8 @@ def save_detections(src_dir: str, dst_dir: str):
 
     # loader.load_frames() is better if paths are not needed.
     for i, frame_path in enumerate(tqdm(loader.paths)):
-        out = predictor(loader.load_frame(i))
+        frame = loader.load_item(i)
+        out = predictor(frame)
         instances = out['instances'].to('cpu')
 
         detections = create_detections(instances)
