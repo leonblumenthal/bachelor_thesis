@@ -4,7 +4,7 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 
-from src.models import Detection
+from .models import Detection
 
 
 def overlay_colored_masks(

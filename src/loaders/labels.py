@@ -2,7 +2,7 @@ import json
 from typing import Dict, List, Tuple
 
 from .loader import Loader
-from .models import Box3D, Dimension, Label, Location, ProjectedBox
+from ..models import Box3D, Dimension, Label, Location, ProjectedBox
 
 
 class LabelsLoader(Loader):
@@ -11,7 +11,7 @@ class LabelsLoader(Loader):
     def __init__(self, dir_path: str):
         super().__init__(dir_path, '.json')
 
-    def _load_item(self, path: str) -> Tuple[List[Label], Dict]:
+    def _load_item(self, path: str, **kwargs) -> Tuple[List[Label], Dict]:
         with open(path) as f:
             data = json.load(f)
 

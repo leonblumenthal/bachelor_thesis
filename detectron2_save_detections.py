@@ -8,7 +8,7 @@ import torch
 from tqdm import tqdm
 
 from detectron2_utils import create_detections, load_default_predictor
-from loaders import FrameLoader
+from src.loaders import FrameLoader
 
 # Ignore Detectron2 warning.
 warnings.simplefilter('ignore', UserWarning)

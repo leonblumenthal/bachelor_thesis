@@ -4,7 +4,7 @@ from typing import List, Tuple
 import numpy as np
 from scipy import interpolate
 
-from src.models import Detection, Label
+from .models import Detection, Label
 
 
 def merge_masks(detections: List[Detection], dimensions: Tuple[int, int]) -> np.ndarray:
