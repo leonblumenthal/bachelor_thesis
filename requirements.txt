@@ -2,6 +2,12 @@ numpy
 opencv-python
 python-dotenv
 tqdm
+plotly
+scipy
+matplotlib
+ipykernel
+pandas
+nbformat
 
 -f https://dl.fbaipublicfiles.com/detectron2/wheels/cu113/torch1.10/index.html
 detectron2 
