@@ -1,7 +1,7 @@
 import torch
 
-from .loader import Loader
 from ..models import Detection
+from .loader import Loader
 
 
 class DetectionsLoader(Loader):
