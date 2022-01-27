@@ -128,3 +128,27 @@ def draw_path(
         path += ' Z'
 
     fig.add_shape(type='path', path=path, line_color=color, line_width=thickness)
+
+
+def draw_contours(
+    fig: go.Figure,
+    contours: List[np.ndarray],
+    colors: Any = (1, 0, 0),
+    marker_symbol: str = 'x',
+    marker_size: float = 4,
+):
+    """Draw contours (mx2xn) on figure."""
+
+    colors = px.colors.validate_colors(colors, 'rgb')
+
+    for i, points in enumerate(contours):
+        color = colors[i % len(colors)]
+        fig.add_scatter(
+            x=points[0],
+            y=points[1],
+            mode='markers',
+            marker_color=color,
+            marker_symbol=marker_symbol,
+            marker_size=marker_size,
+            name=f'contour {i}',
+        )
