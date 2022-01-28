@@ -2,12 +2,14 @@ from typing import List, Tuple
 
 import numpy as np
 import torch
-from detectron2.structures import Instances
 from detectron2 import model_zoo
 from detectron2.config import get_cfg
 from detectron2.engine import DefaultPredictor
+from detectron2.structures import Instances
 
 from src.models import Detection
+
+DEFAULT_MODEL = 'COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml'
 
 
 def _get_mask_box(mask: torch.Tensor) -> Tuple[int, int, int, int]:
@@ -39,7 +41,7 @@ def create_detections(instances: Instances) -> List[Detection]:
         instances.pred_boxes,
         instances.pred_classes,
         instances.scores,
-    ):  
+    ):
         # Some masks are empty.
         if not mask.any():
             continue
@@ -60,7 +62,7 @@ def create_detections(instances: Instances) -> List[Detection]:
 
 
 def load_default_predictor(
-    model_name: str = 'COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml',
+    model_name: str,
     input_format: str = 'RGB',
 ) -> DefaultPredictor:
     """Load default predictor with model from model zoo."""

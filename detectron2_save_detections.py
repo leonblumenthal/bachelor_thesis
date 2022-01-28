@@ -7,21 +7,23 @@ from argparse import ArgumentParser
 import torch
 from tqdm import tqdm
 
-from detectron2_utils import create_detections, load_default_predictor
+from detectron2_utils import DEFAULT_MODEL, create_detections, load_default_predictor
 from src.loaders import FrameLoader
 
 # Ignore Detectron2 warning.
 warnings.simplefilter('ignore', UserWarning)
 
 
-def save_detections(src_dir: str, dst_dir: str):
+def save_detections(src_dir: str, dst_dir: str, model_name: str):
     loader = FrameLoader(src_dir)
     print(f'Found {len(loader.paths)} frames')
 
+    print(f'Loading model "{model_name}"...')
+    predictor = load_default_predictor(model_name)
+
     os.makedirs(dst_dir, exist_ok=True)
 
-    predictor = load_default_predictor()
-
+    print(f'Creating detections...')
     # loader.load_frames() is better if paths are not needed.
     for i, frame_path in enumerate(tqdm(loader.paths)):
         frame = loader.load_item(i)
@@ -41,6 +43,7 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('src_dir', type=str)
     parser.add_argument('dst_dir', type=str)
+    parser.add_argument('-m', '--model', type=str, default=DEFAULT_MODEL)
     args = parser.parse_args()
 
-    save_detections(args.src_dir, args.dst_dir)
+    save_detections(args.src_dir, args.dst_dir, args.model)
