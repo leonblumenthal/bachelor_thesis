@@ -210,3 +210,29 @@ def draw_vehicles(
                 draw_path(fig, projected_corners[:, [j, j + 4]], color, thickness)
 
     return fig
+
+
+def draw_camera_position(
+    fig: go.Figure,
+    perspective: Perspective,
+    color: Any = (0, 0, 0),
+) -> go.Figure:
+    """Draw camera position of perspective onto ground plane."""
+
+    color = px.colors.validate_colors(color, 'rgb')[0]
+
+    x, y = perspective.translation[:2]
+    fig.add_scatter(
+        x=x,
+        y=y,
+        marker=dict(
+            size=16,
+            symbol='asterisk',
+            line_color=color,
+            line_width=4,
+        ),
+        name='camera',
+        mode='markers'
+    )
+
+    return fig
