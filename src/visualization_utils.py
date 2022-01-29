@@ -119,7 +119,7 @@ def draw_path(
     color: Any = (0, 0, 0),
     thickness: float = 2,
     closed: bool = True,
-):
+) -> go.Figure:
     """Draw (closed) path on figure with points (2xn)."""
 
     color = px.colors.validate_colors(color, 'rgb')[0]
@@ -131,6 +131,8 @@ def draw_path(
 
     fig.add_shape(type='path', path=path, line_color=color, line_width=thickness)
 
+    return fig
+
 
 def draw_contours(
     fig: go.Figure,
@@ -138,7 +140,7 @@ def draw_contours(
     colors: Any = (1, 0, 0),
     marker_symbol: str = 'x',
     marker_size: float = 4,
-):
+) -> go.Figure:
     """Draw contours (mx2xn) on figure."""
 
     colors = px.colors.validate_colors(colors, 'rgb')
@@ -155,6 +157,8 @@ def draw_contours(
             name=f'contour {i}',
         )
 
+    return fig
+
 
 def draw_vehicles(
     fig: go.Figure,
@@ -162,9 +166,9 @@ def draw_vehicles(
     perspective: Perspective = None,
     colors: Any = (0, 0, 0),
     thickness: float = 2,
-):
+) -> go.Figure:
     """
-    Draw vehicles as 2D rectangles on ground plane 
+    Draw vehicles as 2D rectangles on ground plane
     or as 3D box on frame if perspective is given.
     """
 
@@ -204,3 +208,5 @@ def draw_vehicles(
             draw_path(fig, projected_corners[:, 4:], color, thickness)
             for j in range(4):
                 draw_path(fig, projected_corners[:, [j, j + 4]], color, thickness)
+
+    return fig
