@@ -1,10 +1,10 @@
-from dataclasses import astuple
 from typing import List, Tuple
 
 import numpy as np
 from scipy import interpolate
 
-from .models import Detection, Label
+from .models import Detection, Vehicle
+from .perspective import Perspective
 
 
 def merge_masks(detections: List[Detection], dimensions: Tuple[int, int]) -> np.ndarray:
@@ -41,64 +41,52 @@ def calculate_mask_centers(
 
         centers.append([x, y])
 
-    return np.array(centers)
+    return np.array(centers).T
 
 
 def match_detections_and_labels(
     detections: List[Detection],
-    labels: List[Label],
-    min_span: float = 0,
-    bounds: Tuple[int, int] = None,
-) -> List[Tuple[Detection, Label]]:
+    labels: List[Vehicle],
+    perspective: Perspective,
+) -> Tuple[List[Detection], List[Vehicle]]:
     """
     Match detections and labels together based on
-    pixel distance between mask- and projection centers.
+    pixel distance between mask- and 3D box centers.
     """
 
     if not detections or not labels:
         return []
 
-    # Convert projected keypoints to numpy and compute min/max corners.
-    label_keypoints = np.array([astuple(l.projected_box) for l in labels])
-    label_maxs = label_keypoints.max(1)
-    label_mins = label_keypoints.min(1)
-
-    # Check if projection span is below threshold for every label.
-    spans = np.linalg.norm((label_maxs - label_mins), axis=-1)
-    valid_indices = spans >= min_span
-
-    # Check out of bounds boxes for every label.
-    if bounds is not None:
-        above_zero = np.all(label_mins > 0, axis=-1)
-        below_max = np.all(label_maxs < bounds, axis=-1)
-        valid_indices &= above_zero & below_max
-
-    # Ignore labels without sufficient span or out bounds.
-    labels = [label for label, valid in zip(labels, valid_indices) if valid]
-    label_keypoints = label_keypoints[valid_indices]
-
     # Calculate centers for masks and labels.
     mask_centers = calculate_mask_centers(detections)
-    label_centers = label_keypoints.mean(1)
+    label_centers = np.hstack(
+        [
+            label.location + np.array([[0, 0, label.dimensions[2] / 2]]).T
+            for label in labels
+        ]
+    )
+    label_centers = perspective.project_to_image(label_centers)
 
     # Get nearest mask for each label.
     distances = np.linalg.norm(
-        mask_centers[None, ...] - label_centers[:, None, :], axis=-1
+        mask_centers[..., None] - label_centers[:, None, :], axis=0
     )
-    det_indices = distances.argmin(axis=1)
+    det_indices = distances.argmin(axis=0)
 
     # Save duplicate mask indices.
     values, counts = np.unique(det_indices, return_counts=True)
     duplicates = values[counts > 1]
 
     # Create matching pairs without duplicate masks.
-    pairs = [
-        (detections[det_index], label)
-        for det_index, label in zip(det_indices, labels)
-        if det_index not in duplicates
-    ]
+    matched_detections = []
+    matched_labels = []
+    for det_index, label in zip(det_indices, labels):
+        if det_index in duplicates:
+            continue
+        matched_detections.append(detections[det_index])
+        matched_labels.append(label)
 
-    return pairs
+    return matched_detections, matched_labels
 
 
 def calculate_bottom_contour(detection: Detection, anchored: bool = True) -> np.ndarray:

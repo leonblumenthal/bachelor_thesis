@@ -5,46 +5,13 @@ import numpy as np
 
 
 @dataclass
-class Dimension:
-    length: float
-    width: float
-    height: float
+class Vehicle:
+    """Representation of a single vehicle"""
 
-
-@dataclass
-class Location:
-    x: float
-    y: float
-    z: float
-
-
-@dataclass
-class Box3D:
-    dimension: Dimension
-    location: Location
+    location: np.ndarray  # x, y, z
+    dimensions: Tuple[float, float, float]  # length, width, height
     yaw: float
-
-
-@dataclass
-class ProjectedBox:
-    bottom_left_front: Tuple[float, float]
-    bottom_left_back: Tuple[float, float]
-    bottom_right_back: Tuple[float, float]
-    bottom_right_front: Tuple[float, float]
-    top_left_front: Tuple[float, float]
-    top_left_back: Tuple[float, float]
-    top_right_back: Tuple[float, float]
-    top_right_front: Tuple[float, float]
-
-
-@dataclass
-class Label:
-    """Single Label of providentia camera dataset"""
-
-    id: int
     category: str
-    box3d: Box3D
-    projected_box: ProjectedBox
 
 
 @dataclass
