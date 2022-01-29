@@ -4,7 +4,9 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 
-from .models import Detection
+from src.perspective import Perspective
+
+from .models import Detection, Vehicle
 
 
 def overlay_colored_masks(
@@ -152,3 +154,53 @@ def draw_contours(
             marker_size=marker_size,
             name=f'contour {i}',
         )
+
+
+def draw_vehicles(
+    fig: go.Figure,
+    vehicles: List[Vehicle],
+    perspective: Perspective = None,
+    colors: Any = (0, 0, 0),
+    thickness: float = 2,
+):
+    """
+    Draw vehicles as 2D rectangles on ground plane 
+    or as 3D box on frame if perspective is given.
+    """
+
+    colors = px.colors.validate_colors(colors, 'rgb')
+
+    for i, vehicle in enumerate(vehicles):
+        color = colors[i % len(colors)]
+
+        # Create local bounding box.
+        length, width, height = vehicle.dimensions
+        bottom_corners = np.array(
+            [
+                [-length / 2, +length / 2, +length / 2, -length / 2],
+                [-width / 2, -width / 2, +width / 2, +width / 2],
+                [0, 0, 0, 0],
+            ]
+        )
+        # Rotate bounding box.
+        yaw = vehicle.yaw
+        rotation = np.array(
+            [[np.cos(yaw), -np.sin(yaw), 0], [np.sin(yaw), np.cos(yaw), 0], [0, 0, 1]]
+        )
+        bottom_corners = rotation @ bottom_corners
+        # Add global location
+        bottom_corners += vehicle.location
+
+        if perspective is None:
+            # Draw bottom corners on ground plane.
+            draw_path(fig, bottom_corners[:2], color, thickness)
+        else:
+            # Add top corners and project onto image.
+            height_offset = np.array([[0, 0, height]]).T
+            corners = np.hstack((bottom_corners, bottom_corners + height_offset))
+            projected_corners = perspective.project_to_image(corners)
+            # Draw bottom-, top polygons and vertical lines individually.
+            draw_path(fig, projected_corners[:, :4], color, thickness)
+            draw_path(fig, projected_corners[:, 4:], color, thickness)
+            for j in range(4):
+                draw_path(fig, projected_corners[:, [j, j + 4]], color, thickness)
