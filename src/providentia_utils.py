@@ -28,8 +28,11 @@ def parse_perspectives(dir_path: str) -> Dict[str, Perspective]:
         translation = np.array(data['extrinsic_matrix'])[:, -1:]
         translation = -rotation_matrix.T @ translation
         intrinsic_matrix = np.array(data['intrinsic_matrix'])
+        image_shape = data['image_height'], data['image_width']
 
-        perspectives[name] = Perspective(rotation_matrix, translation, intrinsic_matrix)
+        perspectives[name] = Perspective(
+            rotation_matrix, translation, intrinsic_matrix, image_shape
+        )
 
     return perspectives
 

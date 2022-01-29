@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import numpy as np
 
 
@@ -10,6 +12,8 @@ class Perspective:
     1. rotation matrix, from ground- to camera frame (3x3)
     2. translation (i.e. camera position) in ground frame (3x1)
     3. intrinsic matrix of the camera (3x3)
+
+    Additionally, the image shape (height, width) is stored.
     """
 
     def __init__(
@@ -17,6 +21,7 @@ class Perspective:
         rotation_matrix: np.ndarray,
         translation: np.ndarray,
         intrinsic_matrix: np.ndarray,
+        image_shape: Tuple[int, int],
     ):
 
         assert rotation_matrix.shape == (3, 3)
@@ -26,6 +31,7 @@ class Perspective:
         self.rotation_matrix = rotation_matrix
         self.translation = translation
         self.intrinsic_matrix = intrinsic_matrix
+        self.image_shape = image_shape
 
         self.extrinsic_matrix = np.hstack(
             (self.rotation_matrix, -self.rotation_matrix @ self.translation)
