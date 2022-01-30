@@ -264,7 +264,16 @@ def draw_vehicles(
             )
             points = perspective.project_to_image(points)
 
-        draw_annotations(fig, points, colors=annotation_colors, size=annotation_size)
+        custom_data = [(i, vehicle.category) for i, vehicle in enumerate(vehicles)]
+
+        draw_annotations(
+            fig,
+            points,
+            colors=annotation_colors,
+            size=annotation_size,
+            custom_data=custom_data,
+            hover_template='id: %{customdata[0]}<br>category: %{customdata[1]}',
+        )
 
     return fig
 
