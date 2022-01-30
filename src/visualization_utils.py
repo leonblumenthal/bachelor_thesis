@@ -34,6 +34,42 @@ def overlay_colored_masks(
     return frame
 
 
+def draw_annotations(
+    fig: go.Figure,
+    points: np.ndarray,
+    texts: List = None,
+    colors: Any = (0, 0, 0),
+    size: float = 10,
+    custom_data: Any = None,
+    hover_template: str = None,
+) -> go.Figure:
+    """
+    Draw text annotations at points (2xn) on figure.
+    Default text for each point is enumerated index.
+    """
+
+    colors = px.colors.validate_colors(colors, 'rgb')
+    colors = [colors[i % len(colors)] for i in range(points.shape[1])]
+
+    if texts is None:
+        texts = [str(i) for i in range(points.shape[1])]
+
+    x, y = points
+
+    fig.add_scatter(
+        x=x,
+        y=y,
+        text=texts,
+        mode='text',
+        textfont=dict(color=colors, size=size),
+        name='',
+        customdata=custom_data,
+        hovertemplate=hover_template,
+    )
+
+    return fig
+
+
 def create_detections_figure(
     frame: np.ndarray,
     detections: List[Detection],
@@ -80,33 +116,26 @@ def create_detections_figure(
 
     # Add annotations including hover info.
     if annotation_colors is not None:
-        annotation_colors = px.colors.validate_colors(annotation_colors, 'rgb')
-
-        xs = []
-        ys = []
+        points = []
         texts = []
-        colors = []
-        customdata = []
+        custom_data = []
 
         for i, detection in enumerate(detections):
             x, y = detection.anchor
             h, w = detection.mask.shape
-            xs.append(x + w / 2)
-            ys.append(y + h / 2)
+            points.append((x + w / 2, y + h / 2))
 
             texts.append(str(i))
-            colors.append(annotation_colors[i % len(annotation_colors)])
-            customdata.append((i, detection.label, detection.score))
+            custom_data.append((i, detection.label, detection.score))
 
-        fig.add_scatter(
-            x=xs,
-            y=ys,
-            text=texts,
-            mode='text',
-            textfont=dict(color=colors, size=annotation_size),
-            name='',
-            customdata=customdata,
-            hovertemplate='id: %{customdata[0]}<br>'
+        draw_annotations(
+            fig,
+            np.array(points).T,
+            texts,
+            annotation_colors,
+            annotation_size,
+            custom_data,
+            'id: %{customdata[0]}<br>'
             + 'label: %{customdata[1]}<br>score: %{customdata[2]:.2f}',
         )
 
@@ -232,7 +261,7 @@ def draw_camera_position(
             line_width=4,
         ),
         name='camera',
-        mode='markers'
+        mode='markers',
     )
 
     return fig
