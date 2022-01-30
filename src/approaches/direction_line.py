@@ -94,11 +94,40 @@ def process_dimension(
     return value
 
 
+def estimate_height(
+    detection: Detection,
+    ground_contour: np.ndarray,
+    perspective: Perspective,
+    length_by_width: float,
+) -> float:
+    """Estimate height of vehicle based on distance to camera and focal length."""
+
+    # Assume mid point of contour is roughly nearest point to camera.
+    index = ground_contour.shape[1] // 2
+    mid_point = ground_contour[:2, index]
+
+    camera_point = perspective.translation[:2, 0]
+    camera_height = perspective.translation[2, 0]
+
+    camera_distance = np.linalg.norm(mid_point - camera_point)
+    view_angle = np.tan(camera_height / camera_distance)
+    estimated_height = (
+        camera_distance
+        * detection.mask.shape[0]
+        / (length_by_width * np.sin(view_angle) + np.cos(view_angle))
+        / perspective.intrinsic_matrix[1, 1]
+    )
+
+    return estimated_height
+
+
 def estimate_bounding_boxes(
     ground_contours: np.ndarray,
     detections: List[Detection],
     perspective: Perspective,
     direction_line: DirectionLine,
+    length_by_width: float,
+    car_height_threshold: float,
     dimension_values_mapping: Dict[str, Tuple],
 ) -> List[Vehicle]:
     """
@@ -125,13 +154,20 @@ def estimate_bounding_boxes(
         min_x, max_x = rotated_points[0].min(), rotated_points[0].max()
         min_y, max_y = rotated_points[1].min(), rotated_points[1].max()
 
+        # Estimate height and change category to CAR for short vehicles.
+        estimated_height = estimate_height(
+            detection, points, perspective, length_by_width
+        )
+        if estimated_height < car_height_threshold and detection.category != 'CAR':
+            detection.category = 'CAR'
+
         # Estimate dimensions with limits.
         length_values, width_values, height_values = dimension_values_mapping[
             detection.category
         ]
         length = process_dimension(max_x - min_x, length_values)
         width = process_dimension(max_y - min_y, width_values)
-        height = height_values[1]
+        height = process_dimension(estimated_height, height_values)
 
         # Resize naive bounding box based on camera position.
         if cam_x <= (min_x + max_x) / 2:
@@ -169,6 +205,8 @@ def create_predictions(
     direction_line: DirectionLine,
     threshold_kwargs: Dict[str, float],
     label_mappings: Dict[int, str],
+    length_by_width: float,
+    car_height_threshold: float,
     dimension_values_mapping: Dict[str, Tuple],
 ) -> List[Vehicle]:
     """
@@ -187,6 +225,8 @@ def create_predictions(
         valid_detections,
         perspective,
         direction_line,
+        length_by_width,
+        car_height_threshold,
         dimension_values_mapping,
     )
 
