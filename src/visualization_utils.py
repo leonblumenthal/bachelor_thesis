@@ -39,7 +39,7 @@ def draw_annotations(
     points: np.ndarray,
     texts: List = None,
     colors: Any = (0, 0, 0),
-    size: float = 10,
+    size: float = 12,
     custom_data: Any = None,
     hover_template: str = None,
 ) -> go.Figure:
@@ -166,16 +166,18 @@ def draw_path(
 def draw_contours(
     fig: go.Figure,
     contours: List[np.ndarray],
-    colors: Any = (1, 0, 0),
+    marker_colors: Any = (1, 0, 0),
     marker_symbol: str = 'x',
     marker_size: float = 4,
+    annotation_colors: Any = None,
+    annotation_size: float = 12,
 ) -> go.Figure:
     """Draw contours (mx2xn) on figure."""
 
-    colors = px.colors.validate_colors(colors, 'rgb')
+    marker_colors = px.colors.validate_colors(marker_colors, 'rgb')
 
     for i, points in enumerate(contours):
-        color = colors[i % len(colors)]
+        color = marker_colors[i % len(marker_colors)]
         fig.add_scatter(
             x=points[0],
             y=points[1],
@@ -186,6 +188,12 @@ def draw_contours(
             name=f'contour {i}',
         )
 
+    if annotation_colors is not None:
+        annotation_colors = px.colors.validate_colors(annotation_colors, 'rgb')
+
+        points = np.array([points[:2].mean(1) for points in contours]).T
+        draw_annotations(fig, points, colors=annotation_colors, size=annotation_size)
+
     return fig
 
 
@@ -193,18 +201,20 @@ def draw_vehicles(
     fig: go.Figure,
     vehicles: List[Vehicle],
     perspective: Perspective = None,
-    colors: Any = (0, 0, 0),
-    thickness: float = 2,
+    box_colors: Any = (0, 0, 0),
+    box_thickness: float = 2,
+    annotation_colors: Any = None,
+    annotation_size: float = 12,
 ) -> go.Figure:
     """
     Draw vehicles as 2D rectangles on ground plane
     or as 3D box on frame if perspective is given.
     """
 
-    colors = px.colors.validate_colors(colors, 'rgb')
+    box_colors = px.colors.validate_colors(box_colors, 'rgb')
 
     for i, vehicle in enumerate(vehicles):
-        color = colors[i % len(colors)]
+        color = box_colors[i % len(box_colors)]
 
         # Create local bounding box.
         length, width, height = vehicle.dimensions
@@ -226,17 +236,35 @@ def draw_vehicles(
 
         if perspective is None:
             # Draw bottom corners on ground plane.
-            draw_path(fig, bottom_corners[:2], color, thickness)
+            draw_path(fig, bottom_corners[:2], color, box_thickness)
         else:
             # Add top corners and project onto image.
             height_offset = np.array([[0, 0, height]]).T
             corners = np.hstack((bottom_corners, bottom_corners + height_offset))
             projected_corners = perspective.project_to_image(corners)
             # Draw bottom-, top polygons and vertical lines individually.
-            draw_path(fig, projected_corners[:, :4], color, thickness)
-            draw_path(fig, projected_corners[:, 4:], color, thickness)
+            draw_path(fig, projected_corners[:, :4], color, box_thickness)
+            draw_path(fig, projected_corners[:, 4:], color, box_thickness)
             for j in range(4):
-                draw_path(fig, projected_corners[:, [j, j + 4]], color, thickness)
+                draw_path(fig, projected_corners[:, [j, j + 4]], color, box_thickness)
+
+    if annotation_colors is not None:
+        annotation_colors = px.colors.validate_colors(annotation_colors, 'rgb')
+
+        if perspective is None:
+            # Draw annotation on vehicle locations on ground plane.
+            points = np.array([vehicle.location[:2, 0] for vehicle in vehicles]).T
+        else:
+            # Draw annotations on projected box centers in image.
+            points = np.hstack(
+                [
+                    vehicle.location + np.array([[0, 0, vehicle.dimensions[2] / 2]]).T
+                    for vehicle in vehicles
+                ]
+            )
+            points = perspective.project_to_image(points)
+
+        draw_annotations(fig, points, colors=annotation_colors, size=annotation_size)
 
     return fig
 
