@@ -92,6 +92,7 @@ def match_detections_and_labels(
 def calculate_bottom_contour(detection: Detection, anchored: bool = True) -> np.ndarray:
     """Calculate (anchored) bottom contour (2 x w) for detection mask (h x w)."""
 
+    # This is way faster than using an edge detection kernel.
     mask = detection.mask
     x = np.arange(mask.shape[1])
     y = mask.shape[0] - mask[::-1].argmax(0)
