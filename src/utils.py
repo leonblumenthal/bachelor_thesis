@@ -55,7 +55,7 @@ def match_detections_and_labels(
     """
 
     if not detections or not labels:
-        return []
+        return [], []
 
     # Calculate centers for masks and labels.
     mask_centers = calculate_mask_centers(detections)
