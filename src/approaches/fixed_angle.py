@@ -151,8 +151,8 @@ def estimate_bounding_boxes(
     for points, detection in zip(ground_contours, detections):
         # Calculate naive bounding box in direciton line coordiate frame.
         rotated_points = rotation_matrix @ points[:2]
-        min_x, max_x = rotated_points[0].min(), rotated_points[0].max()
-        min_y, max_y = rotated_points[1].min(), rotated_points[1].max()
+        min_x, min_y = rotated_points.min(1)
+        max_x, max_y = rotated_points.max(1)
 
         # Estimate height and change category to CAR for short vehicles.
         estimated_height = estimate_height(
