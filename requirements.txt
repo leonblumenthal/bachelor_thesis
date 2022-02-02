@@ -8,6 +8,7 @@ matplotlib
 ipykernel
 pandas
 nbformat
+cython
 
 -f https://dl.fbaipublicfiles.com/detectron2/wheels/cu113/torch1.10/index.html
 detectron2 
@@ -15,3 +16,11 @@ detectron2
 -f https://download.pytorch.org/whl/cu113/torch_stable.html
 torch==1.10.0+cu113 
 torchvision==0.11.1+cu113
+
+-f https://pypi.ngc.nvidia.com
+nvidia-tensorrt
+
+# If these two fail, install them last manually. 
+# (pip does not enforece the correct order)
+git+https://github.com/NVIDIA-AI-IOT/torch2trt
+./yolact_edge
