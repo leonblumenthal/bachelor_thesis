@@ -204,7 +204,7 @@ def create_predictions(
     perspective: Perspective,
     direction_line: DirectionLine,
     threshold_kwargs: Dict[str, float],
-    label_mappings: Dict[int, str],
+    label_mapping: Dict[int, str],
     length_by_width: float,
     car_height_threshold: float,
     dimension_values_mapping: Dict[str, Tuple],
@@ -215,7 +215,7 @@ def create_predictions(
     """
 
     valid_detections = preprocess_detections(
-        detections, perspective, **threshold_kwargs, label_mapping=label_mappings
+        detections, perspective, **threshold_kwargs, label_mapping=label_mapping
     )
 
     ground_contours = produce_ground_contours(valid_detections, perspective)
