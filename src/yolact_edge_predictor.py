@@ -13,10 +13,9 @@ from yolact_edge.yolact import Yolact
 class YolactEdgePredictor:
     """This is a modified version of the YOLACTEdgeInference (quick and dirty)"""
 
-    def __init__(self, weights_path):
-
+    def __init__(self, model_config: str, weights_path: str):
         global cfg
-        set_cfg('yolact_edge_config')
+        set_cfg(model_config)
         config_ovr = {'use_fast_nms': True, 'mask_proto_debug': False}
         cfg.replace(cfg.copy(config_ovr))
 
@@ -36,7 +35,7 @@ class YolactEdgePredictor:
             net = net.cuda()
             self.net = net
 
-    def predict(
+    def __call__(
         self, img
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """Run yolact edge and return classes, scores, boxes, and masks."""

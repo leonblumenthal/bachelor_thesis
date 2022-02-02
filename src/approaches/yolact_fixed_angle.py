@@ -27,8 +27,8 @@ def produce_ground_contours(
     # by only taking into account y values with max values == 1.
     image_contours = []
     for ms, ys in zip(max_values, y_values):
-        y = image_height - ys[ms].cpu()
-        x = x_range[ms].cpu()
+        y = image_height - ys[ms].cpu().numpy()
+        x = x_range[ms].cpu().numpy()
         image_contours.append(np.array([x, y]))
 
     # Project each contour from image to ground plane.
@@ -182,7 +182,7 @@ def create_predictions(
     """
 
     # Run Yolact Edge on image.
-    classes, scores, boxes, masks = predictor.predict(frame)
+    classes, scores, boxes, masks = predictor(frame)
 
     # Calculate mask heights before boxes are altered for margin checks.
     mask_heights = boxes[:, 3] - boxes[:, 1]
