@@ -8,6 +8,12 @@ data
 # Mac specific
 .DS_Store
 
+# TensorRT
+*.trt
+
+# Weights for e.g. Yolact Edge
+weights
+
 ### Default GitHub Python .gitignore
 # Byte-compiled / optimized / DLL files
 __pycache__/
