@@ -25,9 +25,9 @@ def calculate_image_edge_margin(detection: Detection, perspective: Perspective) 
 def preprocess_detections(
     detections: List[Detection],
     perspective: Perspective,
-    score_threshold: float,
-    span_threshold: float,
-    margin_threshold: int,
+    score_threshold: Dict[str, float],
+    mask_width_threshold: Dict[str, float],
+    edge_margin_threshold: float,
     label_mapping: Dict[int, str],
 ) -> List[Detection]:
     """
@@ -38,14 +38,15 @@ def preprocess_detections(
     valid_detections = []
 
     for detection in detections:
-        width, height = detection.mask.shape
-        span = (width ** 2 + height ** 2) ** 0.5
+        # Estimate width based on area.
+        width = detection.mask.sum() ** 0.5
+
         margin = calculate_image_edge_margin(detection, perspective)
 
         if (
             detection.score >= score_threshold
-            and span >= span_threshold
-            and margin >= margin_threshold
+            and width >= mask_width_threshold
+            and margin >= edge_margin_threshold
             and detection.label in label_mapping
         ):
             detection.category = label_mapping[detection.label]
@@ -203,7 +204,9 @@ def create_predictions(
     detections: List[Detection],
     perspective: Perspective,
     direction_line: DirectionLine,
-    threshold_kwargs: Dict[str, float],
+    score_threshold: Dict[str, float],
+    mask_width_threshold: Dict[str, float],
+    edge_margin_threshold: float,
     label_mapping: Dict[int, str],
     length_by_width: float,
     car_height_threshold: float,
@@ -215,7 +218,12 @@ def create_predictions(
     """
 
     valid_detections = preprocess_detections(
-        detections, perspective, **threshold_kwargs, label_mapping=label_mapping
+        detections,
+        perspective,
+        score_threshold,
+        mask_width_threshold,
+        edge_margin_threshold,
+        label_mapping,
     )
 
     ground_contours = produce_ground_contours(valid_detections, perspective)
