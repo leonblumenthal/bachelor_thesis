@@ -7,6 +7,29 @@ import numpy as np
 from .perspective import Perspective
 
 
+def parse_perspective(path: str) -> Perspective:
+    """Parse single perspective from JSON file."""
+
+    with open(path) as f:
+        data = json.load(f)
+
+    keys = {'rotation_matrix', 'translation', 'intrinsic_matrix'}
+    if not keys.issubset(data):
+        return None
+
+    rotation_matrix = np.array(data['rotation_matrix']).T
+    translation = np.array(data['extrinsic_matrix'])[:, -1:]
+    translation = -rotation_matrix.T @ translation
+    intrinsic_matrix = np.array(data['intrinsic_matrix'])
+    image_shape = data['image_height'], data['image_width']
+
+    perspective = Perspective(
+        rotation_matrix, translation, intrinsic_matrix, image_shape
+    )
+
+    return perspective
+
+
 def parse_perspectives(dir_path: str) -> Dict[str, Perspective]:
     """Parse perspectives from JSON files in specified directory."""
     perspectives = {}
@@ -15,24 +38,14 @@ def parse_perspectives(dir_path: str) -> Dict[str, Perspective]:
         if not filename.endswith('.json'):
             continue
 
-        with open(os.path.join(dir_path, filename)) as f:
-            data = json.load(f)
+        path = os.path.join(dir_path, filename)
 
-        keys = {'rotation_matrix', 'translation', 'intrinsic_matrix'}
-        if not keys.issubset(data):
+        perspective = parse_perspective(path)
+        if perspective is None:
             continue
 
         name = filename.split('.')[0]
-
-        rotation_matrix = np.array(data['rotation_matrix']).T
-        translation = np.array(data['extrinsic_matrix'])[:, -1:]
-        translation = -rotation_matrix.T @ translation
-        intrinsic_matrix = np.array(data['intrinsic_matrix'])
-        image_shape = data['image_height'], data['image_width']
-
-        perspectives[name] = Perspective(
-            rotation_matrix, translation, intrinsic_matrix, image_shape
-        )
+        perspectives[name] = perspective
 
     return perspectives
 
