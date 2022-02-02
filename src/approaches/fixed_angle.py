@@ -7,21 +7,6 @@ from ..models import Detection, DirectionLine, Vehicle
 from ..perspective import Perspective
 
 
-def calculate_image_edge_margin(detection: Detection, perspective: Perspective) -> int:
-    """Calculate minimum margin of detection mask to frame edge."""
-
-    image_height, image_width = perspective.image_shape
-    mask_height, mask_width = detection.mask.shape
-
-    left_margin, top_margin = detection.anchor
-    right_margin = image_width - mask_width - left_margin
-    bottom_margin = image_height - mask_height - top_margin
-
-    margin = min(left_margin, right_margin, top_margin, bottom_margin)
-
-    return margin
-
-
 def preprocess_detections(
     detections: List[Detection],
     perspective: Perspective,
@@ -35,13 +20,16 @@ def preprocess_detections(
     Return valid detections with mapped category.
     """
 
-    valid_detections = []
+    image_height, image_width = perspective.image_shape
 
+    valid_detections = []
     for detection in detections:
         # Estimate width based on area.
         width = detection.mask.sum() ** 0.5
 
-        margin = calculate_image_edge_margin(detection, perspective)
+        # Calculate minimum margin to image edge from 2D bounding box.
+        x0, y0, x1, y1 = detection.box
+        margin = min(x0, y0, image_width - x1, image_height - y1)
 
         if (
             detection.score >= score_threshold
@@ -63,14 +51,12 @@ def produce_ground_contours(
     Return contours projected onto ground plane.
     """
 
-    image_contours = [
-        utils.calculate_bottom_contour(detection, anchored=False)
-        for detection in detections
-    ]
+    ground_contours = []
+    for detection in detections:
+        image_contour = utils.calculate_bottom_contour(detection, anchored=False)
 
-    ground_contours = [
-        perspective.project_to_ground(image_contour) for image_contour in image_contours
-    ]
+        ground_contour = perspective.project_to_ground(image_contour)
+        ground_contours.append(ground_contour)
 
     return ground_contours
 
@@ -101,7 +87,10 @@ def estimate_height(
     perspective: Perspective,
     length_by_width: float,
 ) -> float:
-    """Estimate height of vehicle based on distance to camera and focal length."""
+    """
+    Estimate height of vehicle based on mask height,
+    distance to camera, and focal length.
+    """
 
     # Assume mid point of contour is roughly nearest point to camera.
     index = ground_contour.shape[1] // 2
@@ -112,9 +101,14 @@ def estimate_height(
 
     camera_distance = np.linalg.norm(mid_point - camera_point)
     view_angle = np.tan(camera_height / camera_distance)
+
+    # Use 2D bounding instead of mask height
+    # to be comparable to streamlines approach.
+    mask_height = detection.box[3] - detection.box[1]
+
     estimated_height = (
         camera_distance
-        * detection.mask.shape[0]
+        * mask_height
         / (length_by_width * np.sin(view_angle) + np.cos(view_angle))
         / perspective.intrinsic_matrix[1, 1]
     )
