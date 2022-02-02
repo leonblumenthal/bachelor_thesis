@@ -2,14 +2,8 @@ from typing import List, Tuple
 
 import numpy as np
 import torch
-from detectron2 import model_zoo
-from detectron2.config import get_cfg
-from detectron2.engine import DefaultPredictor
-from detectron2.structures import Instances
 
-from src.models import Detection
-
-DEFAULT_MODEL = 'COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml'
+from .models import Detection
 
 
 def _get_mask_box(mask: torch.Tensor) -> Tuple[int, int, int, int]:
@@ -31,16 +25,21 @@ def _trim_mask(
     return mask[y_min : y_max + 1, x_min : x_max + 1].numpy()
 
 
-def create_detections(instances: Instances) -> List[Detection]:
-    """Create detections from detectron2 instances."""
+def create_detections(
+    masks: torch.Tensor,
+    boxes: torch.Tensor,
+    classes: torch.Tensor,
+    scores: torch.Tensor,
+) -> List[Detection]:
+    """Create detections from masks, boxes, classes, and scores."""
 
     detections = []
 
     for mask, box, label, score in zip(
-        instances.pred_masks,
-        instances.pred_boxes,
-        instances.pred_classes,
-        instances.scores,
+        masks.to('cpu'),
+        boxes.to('cpu'),
+        classes.to('cpu'),
+        scores.to('cpu'),
     ):
         # Some masks are empty.
         if not mask.any():
@@ -50,7 +49,7 @@ def create_detections(instances: Instances) -> List[Detection]:
 
         detection = Detection(
             anchor=mask_box[:2],
-            mask=_trim_mask(mask_box, mask),
+            mask=_trim_mask(mask_box, mask).astype(bool),
             box=tuple(box.tolist()),
             label=label.item(),
             score=score.item(),
@@ -59,17 +58,3 @@ def create_detections(instances: Instances) -> List[Detection]:
         detections.append(detection)
 
     return detections
-
-
-def load_default_predictor(
-    model_name: str,
-    input_format: str = 'RGB',
-) -> DefaultPredictor:
-    """Load default predictor with model from model zoo."""
-
-    cfg = get_cfg()
-    cfg.INPUT.FORMAT = input_format
-    cfg.merge_from_file(model_zoo.get_config_file(model_name))
-    cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(model_name)
-
-    return DefaultPredictor(cfg)

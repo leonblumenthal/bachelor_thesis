@@ -1,4 +1,4 @@
-import torch
+import pickle
 
 from ..models import Detection
 from .loader import Loader
@@ -12,6 +12,9 @@ class DetectionsLoader(Loader):
 
     @classmethod
     def _load_item(cls, path: str, **kwargs) -> Detection:
-        detections = torch.load(path)
+        detections = pickle.load(open(path, 'rb'))
+
+        # Convert tuples to detections.
+        detections = [Detection(*detection) for detection in detections]
 
         return detections
