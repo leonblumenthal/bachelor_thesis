@@ -54,6 +54,5 @@ class YolactEdgePredictor:
             preds = self.net(batch, extras=extras)["pred_outs"]
             h, w = frame.shape[:2]
             out = postprocess(preds, w, h)
-            torch.cuda.synchronize()
 
         return out
