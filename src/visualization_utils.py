@@ -1,5 +1,6 @@
 from typing import Any, List
 
+import cv2
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
@@ -30,6 +31,27 @@ def overlay_colored_masks(
             frame[y : y + h, x : x + w][detection.mask].mean(axis=-1)[..., None]
             + np.array(color)
         ) // 2
+
+    return frame
+
+
+def overlay_colored_boxes(
+    frame: np.ndarray,
+    detections: List[Detection],
+    colors: Any = (0, 0, 1),
+    thickness: float = 2,
+) -> np.ndarray:
+    """Overlay colored box for each detection on copied frame."""
+
+    colors = np.array(px.colors.validate_colors(colors, 'tuple')) * 255
+
+    frame = frame.copy()
+
+    for i, detection in enumerate(detections):
+        color = colors[i % len(colors)]
+
+        x0, y0, x1, y1 = [int(a) for a in detection.box]
+        cv2.rectangle(frame, (x0, y0), (x1, y1), color, thickness)
 
     return frame
 
@@ -237,6 +259,14 @@ def draw_vehicles(
         if perspective is None:
             # Draw bottom corners on ground plane.
             draw_path(fig, bottom_corners[:2], color, box_thickness)
+            # Draw direction.
+            direction = np.hstack(
+                (
+                    vehicle.location[:2],
+                    bottom_corners[:2, [1, 2]].mean(1, keepdims=True),
+                )
+            )
+            draw_path(fig, direction, color, box_thickness)
         else:
             # Add top corners and project onto image.
             height_offset = np.array([[0, 0, height]]).T
@@ -247,6 +277,14 @@ def draw_vehicles(
             draw_path(fig, projected_corners[:, 4:], color, box_thickness)
             for j in range(4):
                 draw_path(fig, projected_corners[:, [j, j + 4]], color, box_thickness)
+            # Draw direction.
+            direction = np.hstack(
+                (
+                    projected_corners[:, [0, 2]].mean(1, keepdims=True),
+                    projected_corners[:, [1, 2]].mean(1, keepdims=True),
+                )
+            )
+            draw_path(fig, direction, color, box_thickness)
 
     if annotation_colors is not None:
         annotation_colors = px.colors.validate_colors(annotation_colors, 'rgb')
