@@ -1,6 +1,6 @@
 ### Custom
 # Default data directory
-data
+/data
 
 # VS Code
 .vscode
@@ -12,7 +12,7 @@ data
 *.trt
 
 # Weights for e.g. Yolact Edge
-weights
+/weights
 
 ### Default GitHub Python .gitignore
 # Byte-compiled / optimized / DLL files
