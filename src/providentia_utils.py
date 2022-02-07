@@ -60,3 +60,9 @@ def match_perspective(
             return perspective
 
     return None
+
+
+def extract_camera_name(labels_data: Dict) -> str:
+    """Get camera name from labels data."""
+
+    return labels_data['image_file_name'][21:49]
