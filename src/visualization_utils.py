@@ -43,7 +43,7 @@ def overlay_colored_boxes(
 ) -> np.ndarray:
     """Overlay colored box for each detection on copied frame."""
 
-    colors = np.array(px.colors.validate_colors(colors, 'tuple')) * 255
+    colors = np.array(px.colors.validate_colors(colors, 'tuple'), dtype=float) * 255
 
     frame = frame.copy()
 
@@ -51,6 +51,7 @@ def overlay_colored_boxes(
         color = colors[i % len(colors)]
 
         x0, y0, x1, y1 = [int(a) for a in detection.box]
+
         cv2.rectangle(frame, (x0, y0), (x1, y1), color, thickness)
 
     return frame
@@ -314,6 +315,72 @@ def draw_vehicles(
         )
 
     return fig
+
+
+def overlay_3d_vehicles(
+    frame: np.ndarray,
+    vehicles: List[Vehicle],
+    perspective: Perspective = None,
+    box_colors: Any = (0, 0, 0),
+    box_thickness: float = 2,
+) -> go.Figure:
+    """
+    Overlay vehicles as 3D box on frame.
+    """
+
+    frame = frame.copy()
+
+    box_colors = (
+        np.array(px.colors.validate_colors(box_colors, 'tuple'), dtype=float) * 255
+    )
+
+    for i, vehicle in enumerate(vehicles):
+        color = box_colors[i % len(box_colors)]
+
+        # Create local bounding box.
+        length, width, height = vehicle.dimensions
+        bottom_corners = np.array(
+            [
+                [-length / 2, +length / 2, +length / 2, -length / 2],
+                [-width / 2, -width / 2, +width / 2, +width / 2],
+                [0, 0, 0, 0],
+            ]
+        )
+        # Rotate bounding box.
+        yaw = vehicle.yaw
+        rotation = np.array(
+            [[np.cos(yaw), -np.sin(yaw), 0], [np.sin(yaw), np.cos(yaw), 0], [0, 0, 1]]
+        )
+        bottom_corners = rotation @ bottom_corners
+        # Add global location
+        bottom_corners += vehicle.location
+
+        # Add top corners and project onto image.
+        height_offset = np.array([[0, 0, height]]).T
+        corners = np.hstack((bottom_corners, bottom_corners + height_offset))
+        projected_corners = perspective.project_to_image(corners).astype(int).T
+
+        polygons = []
+
+        # Add bottom-, top polygons and vertical lines individually.
+        polygons.append(projected_corners[:4])
+        polygons.append(projected_corners[4:])
+        for j in range(4):
+            polygons.append(projected_corners[[j, j + 4]])
+        # Add direction line.
+        direction = np.vstack(
+            (
+                projected_corners[[0, 2]].mean(0),
+                projected_corners[[1, 2]].mean(0),
+            )
+        ).astype(int)
+
+        polygons.append(direction)
+
+        # Draw polygons.
+        cv2.polylines(frame, polygons, True, color, box_thickness)
+
+    return frame
 
 
 def draw_camera_position(
