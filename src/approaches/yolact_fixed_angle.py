@@ -2,9 +2,9 @@ from typing import Dict, List, Tuple
 
 import numpy as np
 import torch
-from src.models import DirectionLine, Vehicle
-from src.perspective import Perspective
-from src.yolact_edge_predictor import YolactEdgePredictor
+from ..models import DirectionLine, Vehicle
+from ..perspective import Perspective
+from ..yolact_edge_predictor import YolactEdgePredictor
 
 
 def produce_ground_contours(
