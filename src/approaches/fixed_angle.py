@@ -10,13 +10,11 @@ from ..perspective import Perspective
 def preprocess_detections(
     detections: List[Detection],
     perspective: Perspective,
-    score_threshold: Dict[str, float],
-    mask_width_threshold: Dict[str, float],
-    edge_margin_threshold: float,
+    thresholds: Dict[str, int],
     label_mapping: Dict[int, str],
 ) -> List[Detection]:
     """
-    Filter out detections without sufficient score, diagonal mask span, image edge margin, label.
+    Filter out detections without sufficient score, mask area, image edge margin, label.
     Return valid detections with mapped category.
     """
 
@@ -25,16 +23,16 @@ def preprocess_detections(
     valid_detections = []
     for detection in detections:
         # Estimate width based on area.
-        width = detection.mask.sum() ** 0.5
+        mask_width = detection.mask.sum() ** 0.5
 
         # Calculate minimum margin to image edge from 2D bounding box.
         x0, y0, x1, y1 = detection.box
-        margin = min(x0, y0, image_width - x1, image_height - y1)
+        edge_margin = min(x0, y0, image_width - x1, image_height - y1)
 
         if (
-            detection.score >= score_threshold
-            and width >= mask_width_threshold
-            and margin >= edge_margin_threshold
+            detection.score >= thresholds['score']
+            and mask_width >= thresholds['mask_width']
+            and edge_margin >= thresholds['edge_margin']
             and detection.label in label_mapping
         ):
             detection.category = label_mapping[detection.label]
@@ -44,16 +42,17 @@ def preprocess_detections(
 
 
 def produce_ground_contours(
-    detections: List[Detection], perspective: Perspective
+    detections: List[Detection], perspective: Perspective, vertical_contour_shift: float
 ) -> List[np.ndarray]:
     """
-    Calculate bottom contours of detection masks on image.
+    Calculate bottom contours of detection masks on image and shift them.
     Return contours projected onto ground plane.
     """
 
     ground_contours = []
     for detection in detections:
         image_contour = utils.calculate_bottom_contour(detection, anchored=False)
+        image_contour[1] += vertical_contour_shift
 
         ground_contour = perspective.project_to_ground(image_contour)
         ground_contours.append(ground_contour)
@@ -121,8 +120,6 @@ def estimate_bounding_boxes(
     detections: List[Detection],
     perspective: Perspective,
     direction_line: DirectionLine,
-    length_by_width: float,
-    car_height_threshold: float,
     dimension_values_mapping: Dict[str, Tuple],
 ) -> List[Vehicle]:
     """
@@ -149,12 +146,18 @@ def estimate_bounding_boxes(
         min_x, min_y = rotated_points.min(1)
         max_x, max_y = rotated_points.max(1)
 
-        # Estimate height and change category to CAR for short vehicles.
+        # Estimate height and change category to CAR or VAN for shorter vehicles.
+        length_by_width = (
+            dimension_values_mapping['CAR'][0][1]
+            / dimension_values_mapping['CAR'][1][1]
+        )
         estimated_height = estimate_height(
             detection, points, perspective, length_by_width
         )
-        if estimated_height < car_height_threshold and detection.category != 'CAR':
+        if estimated_height <= dimension_values_mapping['CAR'][2][2]:
             detection.category = 'CAR'
+        elif estimated_height <= dimension_values_mapping['VAN'][2][2]:
+            detection.category = 'VAN'
 
         # Estimate dimensions with limits.
         length_values, width_values, height_values = dimension_values_mapping[
@@ -198,12 +201,9 @@ def create_predictions(
     detections: List[Detection],
     perspective: Perspective,
     direction_line: DirectionLine,
-    score_threshold: Dict[str, float],
-    mask_width_threshold: Dict[str, float],
-    edge_margin_threshold: float,
+    thresholds: Dict[str, int],
+    vertical_contour_shift: float,
     label_mapping: Dict[int, str],
-    length_by_width: float,
-    car_height_threshold: float,
     dimension_values_mapping: Dict[str, Tuple],
 ) -> List[Vehicle]:
     """
@@ -212,23 +212,18 @@ def create_predictions(
     """
 
     valid_detections = preprocess_detections(
-        detections,
-        perspective,
-        score_threshold,
-        mask_width_threshold,
-        edge_margin_threshold,
-        label_mapping,
+        detections, perspective, thresholds, label_mapping
     )
 
-    ground_contours = produce_ground_contours(valid_detections, perspective)
+    ground_contours = produce_ground_contours(
+        valid_detections, perspective, vertical_contour_shift
+    )
 
     predictions = estimate_bounding_boxes(
         ground_contours,
         valid_detections,
         perspective,
         direction_line,
-        length_by_width,
-        car_height_threshold,
         dimension_values_mapping,
     )
 

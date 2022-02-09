@@ -8,10 +8,12 @@ from src.yolact_edge_predictor import YolactEdgePredictor
 
 
 def produce_ground_contours(
-    valid_masks: torch.Tensor, perspective: Perspective
+    valid_masks: torch.Tensor,
+    perspective: Perspective,
+    vertical_contour_shift: float,
 ) -> List[np.ndarray]:
     """
-    Calculate bottom contours of detection masks on image.
+    Calculate bottom contours of detection masks on image and shift them.
     Return contours projected onto ground plane.
     """
 
@@ -28,6 +30,7 @@ def produce_ground_contours(
     image_contours = []
     for ms, ys in zip(max_values, y_values):
         y = image_height - ys[ms].cpu().numpy()
+        y += vertical_contour_shift
         x = x_range[ms].cpu().numpy()
         image_contours.append(np.array([x, y]))
 
@@ -92,8 +95,6 @@ def estimate_bounding_boxes(
     mask_heights: List[float],
     perspective: Perspective,
     direction_line: DirectionLine,
-    length_by_width: float,
-    car_height_threshold: float,
     dimension_values_mapping: Dict[str, Tuple],
 ) -> List[Vehicle]:
     """
@@ -120,12 +121,18 @@ def estimate_bounding_boxes(
         min_x, min_y = rotated_points.min(1)
         max_x, max_y = rotated_points.max(1)
 
-        # Estimate height and change category to CAR for short vehicles.
+        # Estimate height and change category to CAR or VAN for shorter vehicles.
+        length_by_width = (
+            dimension_values_mapping['CAR'][0][1]
+            / dimension_values_mapping['CAR'][1][1]
+        )
         estimated_height = estimate_height(
             mask_height, points, perspective, length_by_width
         )
-        if estimated_height < car_height_threshold and category != 'CAR':
+        if estimated_height <= dimension_values_mapping['CAR'][2][2]:
             category = 'CAR'
+        elif estimated_height <= dimension_values_mapping['VAN'][2][2]:
+            category = 'VAN'
 
         # Estimate dimensions with limits.
         length_values, width_values, height_values = dimension_values_mapping[category]
@@ -168,12 +175,9 @@ def create_predictions(
     frame: np.ndarray,
     perspective: Perspective,
     direction_line: DirectionLine,
-    score_threshold: Dict[str, float],
-    mask_width_threshold: Dict[str, float],
-    edge_margin_threshold: float,
+    thresholds: Dict[str, int],
+    vertical_contour_shift: float,
     label_mapping: Dict[int, str],
-    length_by_width: float,
-    car_height_threshold: float,
     dimension_values_mapping: Dict[str, Tuple],
 ) -> List[Vehicle]:
     """
@@ -193,7 +197,7 @@ def create_predictions(
     boxes[:, 2:] *= -1
     boxes[:, 2] += image_width
     boxes[:, 3] += image_height
-    valid_margins = boxes.min(1).values >= edge_margin_threshold
+    valid_margins = boxes.min(1).values >= thresholds['edge_margin']
 
     # Check if class labels have valid category mapping.
     valid_labels = torch.zeros_like(valid_margins)
@@ -201,13 +205,15 @@ def create_predictions(
         valid_labels |= classes == label
 
     # Check estimated mask widths and scores
-    valid_mask_widths = masks.sum((1, 2)) ** 0.5 >= mask_width_threshold
-    valid_scores = scores >= score_threshold
+    valid_mask_widths = masks.sum((1, 2)) ** 0.5 >= thresholds['mask_width']
+    valid_scores = scores >= thresholds['score']
 
     # Combine all checks above to single bool index mask.
     valid_detections = valid_scores & valid_labels & valid_mask_widths & valid_margins
 
-    ground_contours = produce_ground_contours(masks[valid_detections], perspective)
+    ground_contours = produce_ground_contours(
+        masks[valid_detections], perspective, vertical_contour_shift
+    )
 
     # Map class labels to catergories and calculate mask heights for valid detections.
     categories = [
@@ -221,8 +227,6 @@ def create_predictions(
         mask_heights,
         perspective,
         direction_line,
-        length_by_width,
-        car_height_threshold,
         dimension_values_mapping,
     )
 
