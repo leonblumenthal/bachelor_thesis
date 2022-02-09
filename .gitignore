@@ -14,6 +14,9 @@
 # Weights for e.g. Yolact Edge
 /weights
 
+# Notebooks outout
+/notebooks/output
+
 ### Default GitHub Python .gitignore
 # Byte-compiled / optimized / DLL files
 __pycache__/
