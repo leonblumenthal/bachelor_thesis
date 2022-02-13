@@ -323,6 +323,7 @@ def overlay_3d_vehicles(
     perspective: Perspective = None,
     box_colors: Any = (0, 0, 0),
     box_thickness: float = 2,
+    draw_direction: bool = True,
 ) -> go.Figure:
     """
     Overlay vehicles as 3D box on frame.
@@ -367,15 +368,16 @@ def overlay_3d_vehicles(
         polygons.append(projected_corners[4:])
         for j in range(4):
             polygons.append(projected_corners[[j, j + 4]])
-        # Add direction line.
-        direction = np.vstack(
-            (
-                projected_corners[[0, 2]].mean(0),
-                projected_corners[[1, 2]].mean(0),
-            )
-        ).astype(int)
 
-        polygons.append(direction)
+        # Add direction line.
+        if draw_direction:
+            direction = np.vstack(
+                (
+                    projected_corners[[0, 2]].mean(0),
+                    projected_corners[[1, 2]].mean(0),
+                )
+            ).astype(int)
+            polygons.append(direction)
 
         # Draw polygons.
         cv2.polylines(frame, polygons, True, color, box_thickness)
