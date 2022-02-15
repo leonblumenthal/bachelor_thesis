@@ -320,7 +320,7 @@ def draw_vehicles(
 def overlay_3d_vehicles(
     frame: np.ndarray,
     vehicles: List[Vehicle],
-    perspective: Perspective = None,
+    perspective: Perspective,
     box_colors: Any = (0, 0, 0),
     box_thickness: float = 2,
     draw_direction: bool = True,
