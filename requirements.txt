@@ -1,16 +1,4 @@
-numpy
-opencv-python
-python-dotenv
-tqdm
-plotly
-scipy
-matplotlib
-ipykernel
-pandas
-nbformat
-cython
-gdown
-kaleido
+-r requirements_eval.txt
 
 -f https://dl.fbaipublicfiles.com/detectron2/wheels/cu113/torch1.10/index.html
 detectron2 
@@ -20,6 +8,7 @@ torch==1.10.0+cu113
 torchvision==0.11.1+cu113
 
 -f https://pypi.ngc.nvidia.com
+nvidia-pyindex
 nvidia-tensorrt
 
 # If these two fail, install them last manually. 

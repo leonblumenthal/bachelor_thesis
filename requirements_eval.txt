@@ -1,0 +1,13 @@
+numpy
+opencv-python
+python-dotenv
+tqdm
+plotly
+scipy
+matplotlib
+ipykernel
+pandas
+nbformat
+cython
+gdown
+kaleido
