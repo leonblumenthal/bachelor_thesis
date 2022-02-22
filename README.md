@@ -9,7 +9,7 @@ The code in this repository is written for Python 3.8. The full [requirements.tx
 
 ## Src
 
-The main Python code is in the [src/](./src/) directory. It includes utilities and two versions (CPU/GPU) of my working approach. 
+The Python code is in the [src/](./src/) directory. It mainly includes utilities for experimenting but also two versions (CPU/GPU) of my fixed orientation approach.
 
 ## Scripts
 The [scripts/](./scripts/) directory contains two scripts to create detections with the [YolactEdge](https://github.com/haotian-liu/yolact_edge) and Mask R-CNN ([Detectron2](https://github.com/facebookresearch/detectron2)) models or benchmark their FPS. They both depend on the full [requirements.txt](./requirements.txt) and should be executed from the main directory. The specific arguments are documented for each script.
