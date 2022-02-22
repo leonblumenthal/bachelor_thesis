@@ -16,7 +16,7 @@ The [scripts/](./scripts/) directory contains two scripts to create detections w
 
 ## Notebooks
 
-The [notebooks/](./notebooks/) produce evaluation results and figures in my thesis. They depend on the correct files in the [data/](./data/) directory, which can be downloaded [here](https://syncandshare.lrz.de/getlink/fiQq3fm3imbYs7TeYvvbpmAr/data.tar.gz). 
+The [notebooks/](./notebooks/) produce evaluation results and figures in my thesis. They depend on the correct files in the [data/](./data/) directory, which can be downloaded [here](https://syncandshare.lrz.de/getlink/fiQq3fm3imbYs7TeYvvbpmAr/data.tar.gz). Some interactive outputs might not be visible in the web viewer.
 
 Notebook | Content
 --- | ---
