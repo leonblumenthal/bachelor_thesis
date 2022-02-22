@@ -19,8 +19,6 @@ def overlay_colored_masks(
 
     colors = np.array(px.colors.validate_colors(colors, 'tuple')) * 255
 
-    frame = frame.copy()
-
     for i, detection in enumerate(detections):
         color = colors[i % len(colors)]
 
@@ -44,8 +42,6 @@ def overlay_colored_boxes(
     """Overlay colored box for each detection on copied frame."""
 
     colors = np.array(px.colors.validate_colors(colors, 'tuple'), dtype=float) * 255
-
-    frame = frame.copy()
 
     for i, detection in enumerate(detections):
         color = colors[i % len(colors)]
@@ -328,8 +324,6 @@ def overlay_3d_vehicles(
     """
     Overlay vehicles as 3D box on frame.
     """
-
-    frame = frame.copy()
 
     box_colors = (
         np.array(px.colors.validate_colors(box_colors, 'tuple'), dtype=float) * 255
