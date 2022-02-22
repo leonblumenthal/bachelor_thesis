@@ -1,16 +1,18 @@
 # Real-Time Monocular 3D Object Detection to Support Autonomous Driving
 
-This is the code that supports my bachelor's thesis "Real-Time Monocular 3D Object Detection to Support Autonomous Driving". A PDF can be downloaded [here](https://syncandshare.lrz.de/getlink/fiEziVnJvvhhN2yyiRUDTUtk/thesis_leon_blumenthal.pdf).
+![3D bboxes](images/bboxes.jpg)
+
+This is the code that supports my bachelor's thesis "Real-Time Monocular 3D Object Detection to Support Autonomous Driving". The PDF can be downloaded [here](https://syncandshare.lrz.de/getlink/fiEziVnJvvhhN2yyiRUDTUtk/thesis_leon_blumenthal.pdf) and a video of some results can be found [here](https://youtu.be/I9XxiKNIwYE).
 
 ## How to install
-The code in this repository is written for Python 3.8. The full [requirements.txt](./requirements.txt) is only needed when using the Detectron2 or YolactEdge models. Otherwise, the [requirements_eval.txt](./requirements_eval.txt) suffices (e.g. running the notebooks). If installing fails, look at the comments in the [requirements.txt](./requirements.txt).
+The code in this repository is written for Python 3.8. The full [requirements.txt](./requirements.txt) is only needed when using the Mask R-CNN ([Detectron2](https://github.com/facebookresearch/detectron2)) or [YolactEdge](https://github.com/haotian-liu/yolact_edge) models. Otherwise, the [requirements_eval.txt](./requirements_eval.txt) suffices (e.g. running the notebooks). If installing fails, look at the comments in the [requirements.txt](./requirements.txt).
 
 ## Src
 
 The main Python code is in the [src/](./src/) directory. It includes utilities and two versions (CPU/GPU) of my working approach. 
 
 ## Scripts
-The [scripts/](./scripts/) directory contains two scripts to create detections with the Yolact and Mask R-CNN (Detectron2) models or benchmark their FPS. They both depend on the full [requirements.txt](./requirements.txt) and should be executed from the main directory. The specific arguments are documented for each script.
+The [scripts/](./scripts/) directory contains two scripts to create detections with the [YolactEdge](https://github.com/haotian-liu/yolact_edge) and Mask R-CNN ([Detectron2](https://github.com/facebookresearch/detectron2)) models or benchmark their FPS. They both depend on the full [requirements.txt](./requirements.txt) and should be executed from the main directory. The specific arguments are documented for each script.
 
 ## Notebooks
 
