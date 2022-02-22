@@ -1,6 +1,5 @@
 numpy
 opencv-python
-python-dotenv
 tqdm
 plotly
 scipy
