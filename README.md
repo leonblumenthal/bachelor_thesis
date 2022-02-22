@@ -14,6 +14,8 @@ The main Python code is in the [src/](./src/) directory. It includes utilities a
 ## Scripts
 The [scripts/](./scripts/) directory contains two scripts to create detections with the [YolactEdge](https://github.com/haotian-liu/yolact_edge) and Mask R-CNN ([Detectron2](https://github.com/facebookresearch/detectron2)) models or benchmark their FPS. They both depend on the full [requirements.txt](./requirements.txt) and should be executed from the main directory. The specific arguments are documented for each script.
 
+If the weights for a [YolactEdge](https://github.com/haotian-liu/yolact_edge) variant can not be downloaded automatically, they can be downloaded manually from the link in the error message and placed exactly at the path of the *FileNotFoundError*.
+
 ## Notebooks
 
 The [notebooks/](./notebooks/) produce evaluation results and figures in my thesis. They depend on the correct files in the [data/](./data/) directory, which can be downloaded [here](https://syncandshare.lrz.de/getlink/fiQq3fm3imbYs7TeYvvbpmAr/data.tar.gz). Some interactive outputs might not be visible in the web viewer.
