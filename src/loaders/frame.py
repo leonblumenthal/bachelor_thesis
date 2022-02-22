@@ -16,6 +16,6 @@ class FrameLoader(Loader):
 
         # Convert from BGR to RGB.
         if kwargs.get('rgb', True):
-            image = image[:, :, ::-1]
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
         return image
