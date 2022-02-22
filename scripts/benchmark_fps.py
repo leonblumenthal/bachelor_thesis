@@ -1,5 +1,8 @@
 """Measure FPS using all frames in a directory."""
 
+# Allows import from main directory.
+import sys; sys.path.append('.')
+
 import time
 import warnings
 from argparse import ArgumentParser

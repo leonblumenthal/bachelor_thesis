@@ -3,6 +3,9 @@ Create and save detections for every image in a specified directory
 with either a Detectron2 Mask-RCNN or Yolact Edge.
 """
 
+# Allows import from main directory.
+import sys; sys.path.append('.')
+
 import os
 import pickle
 import warnings
@@ -72,13 +75,15 @@ def save_detections(
 
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument('src_dir', type=str)
-    parser.add_argument('dst_dir', type=str)
+    parser.add_argument('src_dir', type=str, help='Directory containing frames')
+    parser.add_argument('dst_dir', type=str, help='Directory to store detections')
     parser.add_argument('model', choices=['detectron2', 'yolact'])
     parser.add_argument(
-        'config', type=str, help='flexible for detectron2, limited choices for yolact'
+        'config', type=str, help='model zoo for detectron2, limited choices for yolact'
     )
-    parser.add_argument('--weights_dir', default='weights')
+    parser.add_argument(
+        '--weights_dir', default='weights', help='Directory to store Yolact weights'
+    )
     args = parser.parse_args()
 
     save_detections(
