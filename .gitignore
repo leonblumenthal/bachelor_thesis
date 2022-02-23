@@ -1,6 +1,6 @@
 ### Custom
 # Default data directory
-/data
+data/*
 
 # VS Code
 .vscode
@@ -12,10 +12,18 @@
 *.trt
 
 # Weights for e.g. Yolact Edge
-/weights
+weights/*
 
-# Notebooks outout
-/notebooks/output
+# Notebooks output
+notebooks/output/approach
+notebooks/output/instance_segmentation
+notebooks/output/intersection
+notebooks/output/video_creation
+notebooks/output/fixed_angle/*
+# Ignore
+!notebooks/output/fixed_angle/best_parameters
+!notebooks/output/fixed_angle/split.npy
+
 
 ### Default GitHub Python .gitignore
 # Byte-compiled / optimized / DLL files
